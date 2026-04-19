@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuLens - PDF OCR App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e1e2f 0%, #0d0d1a 100%);
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .background-blobs {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.5;
+            animation: float 20s infinite alternate cubic-bezier(0.5, 0, 0.5, 1);
+        }
+
+        .blob-1 { width: 50vw; height: 50vw; background: #6236ff; top: -10%; left: -10%; animation-delay: 0s; }
+        .blob-2 { width: 40vw; height: 40vw; background: #00c6ff; bottom: -10%; right: -10%; animation-delay: -5s; }
+        .blob-3 { width: 30vw; height: 30vw; background: #ff007b; top: 40%; left: 60%; animation-delay: -10s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 100px) scale(1.1); }
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .app-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 30px;
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 50px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #6236ff;
+            background: rgba(98, 54, 255, 0.1);
+        }
+
+        .drop-zone svg {
+            width: 48px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 10px rgba(98,54,255,0.5));
+            transition: transform 0.3s;
+        }
+
+        .drop-zone:hover svg {
+            transform: scale(1.1) translateY(-5px);
+        }
+
+        .drop-zone h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .drop-zone p {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Progress Area */
+        .progress-area {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-details {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #6236ff, #00c6ff);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: #a5b4fc;
+            font-weight: 500;
+        }
+        
+        .percentage {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6236ff, #00c6ff);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+            position: relative;
+        }
+
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+
+        .success-message {
+            display: none;
+            margin-top: 20px;
+            color: #4ade80;
+            font-size: 14px;
+            font-weight: 500;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .success-message svg {
+            width: 20px; height: 20px;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 20px;
+            color: #f87171;
+            font-size: 14px;
+            font-weight: 500;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .error-message svg {
+            width: 20px; height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+        <div class="header">
+            <h1>DocuLens</h1>
+            <p>Drop your PDF to automagically OCR and download.</p>
+        </div>
+
+        <div class="drop-zone" id="drop-zone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#6236ff" />
+                        <stop offset="100%" stop-color="#00c6ff" />
+                    </linearGradient>
+                </defs>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <h3>Drag & Drop PDF here</h3>
+            <p>or click to browse from device</p>
+            <input type="file" id="file-input" accept=".pdf" />
+        </div>
+
+        <div class="progress-area" id="progress-area">
+            <div class="progress-header">
+                <div class="file-details">
+                    <div class="file-icon">PDF</div>
+                    <div>
+                        <div class="file-name" id="file-name">document.pdf</div>
+                        <div class="status-text" id="status-text">Processing OCR...</div>
+                    </div>
+                </div>
+                <div class="percentage" id="percentage">0%</div>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="success-message" id="success-message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            File successfully OCR'd and downloaded!
+        </div>
+
+        <div class="error-message" id="error-message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span id="error-text">OCR processing failed!</span>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const progressArea = document.getElementById('progress-area');
+        const progressFill = document.getElementById('progress-fill');
+        const percentageTxt = document.getElementById('percentage');
+        const fileNameTxt = document.getElementById('file-name');
+        const statusTxt = document.getElementById('status-text');
+        const successMessage = document.getElementById('success-message');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+
+        // Drag & Drop Handlers
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+            const file = files[0];
+            
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                alert('Please upload a PDF file.');
+                return;
+            }
+
+            uploadFile(file);
+        }
+
+        async function uploadFile(file) {
+            // UI Reset
+            dropZone.style.display = 'none';
+            progressArea.style.display = 'block';
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            fileNameTxt.innerText = file.name;
+            progressFill.style.width = '0%';
+            percentageTxt.innerText = '0%';
+            statusTxt.innerText = 'Uploading...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                if (data.job_id) {
+                    statusTxt.innerText = 'Initializing OCR...';
+                    connectSSE(data.job_id);
+                } else {
+                    throw new Error('No job ID returned');
+                }
+            } catch (err) {
+                showError('Upload failed: ' + err.message);
+                resetUI();
+            }
+        }
+
+        function connectSSE(jobId) {
+            const eventSource = new EventSource(`/api/progress/${jobId}`);
+            
+            let simProgress = 0;
+            // Fake progress simulator for intermediate steps
+            const simInterval = setInterval(() => {
+                if (simProgress < 15) {
+                    simProgress += 1;
+                    updateProgressUI(simProgress, "Preparing file...");
+                }
+            }, 1000);
+
+            eventSource.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                
+                if (data.status === 'processing') {
+                    clearInterval(simInterval);
+                    const realProgress = Math.max(15, data.progress);
+                    updateProgressUI(realProgress, "Processing OCR...");
+                }
+
+                if (data.status === 'completed') {
+                    clearInterval(simInterval);
+                    updateProgressUI(100, "Done!");
+                    eventSource.close();
+                    
+                    setTimeout(() => finishJob(jobId), 500);
+                }
+
+                if (data.status === 'error') {
+                    clearInterval(simInterval);
+                    eventSource.close();
+                    showError(data.error || 'OCR Process Failed! Check terminal for logs.');
+                    resetUI();
+                }
+            };
+
+            eventSource.onerror = function() {
+                clearInterval(simInterval);
+                eventSource.close();
+            };
+        }
+
+        function updateProgressUI(pct, text) {
+            progressFill.style.width = pct + '%';
+            percentageTxt.innerText = pct + '%';
+            statusTxt.innerText = text;
+        }
+
+        function showError(msg) {
+            errorMessage.style.display = 'flex';
+            errorText.innerText = msg;
+        }
+
+        function finishJob(jobId) {
+            successMessage.style.display = 'flex';
+            
+            // Trigger automatic download
+            const downloadUrl = `/api/download/${jobId}`;
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            // Using download attribute auto-saves it straight to downloads in Chrome
+            a.download = ""; 
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Reset after 4 seconds
+            setTimeout(resetUI, 4000);
+        }
+
+        function resetUI() {
+            fileInput.value = '';
+            dropZone.style.display = 'block';
+            progressArea.style.display = 'none';
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
