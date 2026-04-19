@@ -72,6 +72,39 @@ HOST=127.0.0.1
 
 ## Usage
 
+### Quick Start (Linux/Ubuntu)
+
+1. Make the launcher executable (if not already):
+   ```bash
+   chmod +x start_doculens.sh
+   ```
+
+2. Run the launcher:
+   ```bash
+   ./start_doculens.sh
+   ```
+
+3. App opens in Chrome app mode automatically!
+
+4. Drag & drop a PDF, wait for processing, and it auto-downloads to your Downloads folder.
+
+### Creating Desktop Shortcut (Linux)
+
+Create a `.desktop` file at `~/.local/share/applications/doculens.desktop`:
+
+```ini
+[Desktop Entry]
+Name=DocuLens OCR
+Comment=PDF OCR Application
+Exec=/workspace/DocuLens_App/start_doculens.sh
+Icon=application-pdf
+Terminal=false
+Type=Application
+Categories=Utility;
+```
+
+Then it will appear in your application menu!
+
 ### Quick Start (Windows)
 
 Double-click `start_doculens.vbs` to automatically:

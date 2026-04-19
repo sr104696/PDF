@@ -1,0 +1,28 @@
+OpenBLAS WARNING - could not determine the L2 cache size on this system, assuming 256k
+2026-04-19 22:04:01,674 - __main__ - WARNING - Tesseract executable not found in common locations. Using system default.
+/workspace/DocuLens_App/ocr_server.py:207: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+/workspace/DocuLens_App/ocr_server.py:217: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("shutdown")
+2026-04-19 22:04:01,679 - __main__ - INFO - Starting server on 127.0.0.1:8000
+INFO:     Started server process [778]
+INFO:     Waiting for application startup.
+2026-04-19 22:04:01,811 - __main__ - INFO - Starting DocuLens OCR Server
+2026-04-19 22:04:01,811 - __main__ - INFO - Upload directory: /workspace/DocuLens_App/uploads
+2026-04-19 22:04:01,811 - __main__ - INFO - Output directory: /workspace/DocuLens_App/outputs
+2026-04-19 22:04:01,811 - __main__ - INFO - Max file size: 50MB
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:36312 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36314 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36316 - "GET / HTTP/1.1" 200 OK
