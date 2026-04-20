@@ -1,1 +1,5 @@
-Nothing needs to be added to the .gitignore file based on the provided changes. The added and modified files (start_doculens.sh and README.md) are source/config files that should not be ignored.
+```
+# Directories
+Reddit-Automation/
+"qwen/
+```

@@ -1,0 +1,90 @@
+# config/config.yaml - Optimized Configuration
+# Updated with Technical Moat metric and refined scoring weights
+
+# Target communities
+subreddits:
+  primary:
+    - devops
+    - selfhosted
+    - webdev
+    - startups
+    - personalfinance
+    - Parenting
+    - smallbusiness
+    - Fitness
+    - saas
+    - entrepreneurship
+    - sports
+    - technology
+    - security
+    - pregnant
+    - Beauty
+  exploratory_limit: 12             # Max exploratory subreddits at a time
+  exploratory_refresh_days: 7       # How often to refresh improvised list
+  exploratory_percentage: 90        # % of posts from exploratory communities
+  primary_percentage: 10            # % of posts from configured communities
+
+# Reddit scraping settings
+scraper:
+  min_post_age_days: 5              # Post must be at least 5 days old
+  max_post_age_days: 7              # Ignore posts older than 3 months
+  max_items_per_day: 10           # Total posts/comments scraped per run
+  include_comments: true
+  rate_limit_per_minute: 60         # Reddit API rate limit
+
+# AI provider settings
+ai:
+  provider: openai               # "openai" or "anthropic"
+  openai:
+    model_filter: gpt-5-mini        # For pre-filtering stage
+    model_deep: gpt-5.1             # For insight extraction
+    enqueued_token_limits:           # Max enqueued tokens per model (OpenAI tier limits)
+      gpt-5.1: 900_000
+    default_enqueued_token_limit: 5_000_000
+  anthropic:
+    model_filter: claude-haiku-4-5-20251001
+    model_deep: claude-sonnet-4-5-20250929
+    default_enqueued_token_limit: 10_000_000
+  use_batch_api: true
+  monthly_budget_usd: 100           # Cost cap for safety
+  max_tokens_per_post: 1000         # Estimate for budgeting
+  cache_input: true                 # Reuse prompt if post is nearly identical
+
+# Scoring weights (used in filtering and final ranking)
+# Updated to include Technical Moat metric
+scoring:
+  relevance_weight: 0.20
+  emotion_weight: 0.10
+  pain_point_weight: 0.18
+  implementability_weight: 0.12
+  technical_depth_weight: 0.15
+  technical_moat_weight: 0.15       # NEW: Measures defensibility/competitive advantage
+  recent_activity_weight: 0.10
+  min_technical_depth: 4            # Hard filter: reject posts below this technical depth score
+  min_technical_moat: 3             # Hard filter: reject posts below this moat score
+  output_top_n: 10                  # Number of final posts to recommend
+
+# Database settings
+database:
+  path: data/db.sqlite
+  retention_days: 90                # Auto-remove posts older than this
+
+# Logging & output
+log_level: DEBUG                   # For debug & reuse
+save_batch_payloads: true           # For debug & reuse
+
+cleanup:
+  batch_response_retention_days: 3 # Cleanup batch responses older than this
+
+# Rate limiting configuration
+rate_limiting:
+  # Token bucket configuration for PRAW/Reddit API
+  praw:
+    bucket_capacity: 60             # Max requests per minute
+    refill_rate: 1.0                # Tokens per second
+  # Exponential backoff for LLM API calls
+  llm:
+    initial_delay: 1.0              # Initial delay in seconds
+    max_delay: 300.0                # Maximum delay (5 minutes)
+    multiplier: 2.0                 # Backoff multiplier
+    max_retries: 5                  # Maximum retry attempts
